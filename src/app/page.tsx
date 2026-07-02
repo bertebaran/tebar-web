@@ -144,10 +144,10 @@ export default function Home() {
               {PLANS.map((plan) => (
                 <div 
                   key={plan.id} 
-                  className={`bg-background rounded-2xl border ${plan.recommended ? 'border-primary ring-1 ring-primary shadow-lg shadow-primary/10' : 'border-neutral/10 shadow-sm'} p-8 relative flex flex-col hover:shadow-xl transition-shadow`}
+                  className={`bg-white text-neutral-900 rounded-2xl border ${plan.recommended ? 'border-primary ring-1 ring-primary shadow-lg shadow-primary/10' : 'border-neutral/20 shadow-sm'} p-8 relative flex flex-col hover:shadow-xl transition-shadow`}
                 >
                   {plan.recommended && (
-                    <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-primary text-white px-4 py-1 rounded-full text-xs font-bold uppercase tracking-wide">
+                    <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-[#FF9800] text-white px-4 py-1 rounded-full text-xs font-bold uppercase tracking-wide">
                       Paling Populer
                     </div>
                   )}
@@ -185,8 +185,8 @@ export default function Home() {
                     href="/register"
                     className={`w-full py-3 px-4 rounded-xl font-bold transition-all text-center ${
                       plan.recommended 
-                        ? 'bg-primary text-white hover:bg-primary/90 shadow-md hover:shadow-lg' 
-                        : 'bg-neutral/10 text-neutral-800 hover:bg-neutral/20'
+                        ? 'bg-[#FF9800] text-white hover:bg-[#e68900] shadow-md hover:shadow-lg' 
+                        : 'bg-neutral-100 text-neutral-800 hover:bg-neutral-200'
                     }`}
                   >
                     Mulai Gratis

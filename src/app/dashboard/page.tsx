@@ -111,7 +111,7 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-neutral/5 pb-20">
-      <nav className="bg-white border-b border-neutral/10 shadow-sm sticky top-0 z-10">
+      <nav className="bg-white text-neutral-900 border-b border-neutral/10 shadow-sm sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-white font-bold text-xl">
@@ -151,7 +151,7 @@ export default function DashboardPage() {
         )}
 
         {/* Profile Card */}
-        <div className="bg-white rounded-2xl shadow-sm border border-neutral/10 p-6 md:p-8 mb-10 relative overflow-hidden">
+        <div className="bg-white text-neutral-900 rounded-2xl shadow-sm border border-neutral/10 p-6 md:p-8 mb-10 relative overflow-hidden">
           <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -mr-20 -mt-20"></div>
           
           <h1 className="text-2xl font-bold mb-6">Status Langganan Anda</h1>
@@ -168,16 +168,16 @@ export default function DashboardPage() {
             </div>
 
             <div className="bg-neutral/5 rounded-xl p-5 border border-neutral/10">
-              <p className="text-sm text-neutral-500 mb-1 font-medium">Sisa Kuota Broadcast</p>
+              <p className="text-sm text-neutral-500 mb-1 font-medium">Pemakaian Kuota Broadcast</p>
               <div className="flex items-end gap-2">
                 <p className="text-2xl font-bold">
-                  {(user?.broadcast_limit || 0) - (user?.broadcast_used || 0)}
+                  {user?.broadcast_used || 0}
                 </p>
-                <p className="text-sm text-neutral-500 mb-1">/ {user?.broadcast_limit}</p>
+                <p className="text-sm text-neutral-500 mb-1">/ {user?.broadcast_limit || 100}</p>
               </div>
-              <div className="w-full bg-neutral-200 rounded-full h-1.5 mt-3">
+              <div className="w-full bg-neutral-200 rounded-full h-1.5 mt-3 overflow-hidden">
                 <div 
-                  className="bg-primary h-1.5 rounded-full" 
+                  className="bg-[#FF9800] h-1.5 rounded-full transition-all duration-1000 ease-out" 
                   style={{ width: `${Math.min(100, ((user?.broadcast_used || 0) / (user?.broadcast_limit || 1)) * 100)}%` }}
                 ></div>
               </div>
@@ -221,10 +221,10 @@ export default function DashboardPage() {
           {PLANS.map((plan) => (
             <div 
               key={plan.id} 
-              className={`bg-white rounded-2xl border ${plan.recommended ? 'border-primary ring-1 ring-primary shadow-lg shadow-primary/10' : 'border-neutral/20 shadow-sm'} p-8 relative flex flex-col`}
+              className={`bg-white text-neutral-900 rounded-2xl border ${plan.recommended ? 'border-primary ring-1 ring-primary shadow-lg shadow-primary/10' : 'border-neutral/20 shadow-sm'} p-8 relative flex flex-col`}
             >
               {plan.recommended && (
-                <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-primary text-white px-4 py-1 rounded-full text-xs font-bold uppercase tracking-wide">
+                <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-[#FF9800] text-white px-4 py-1 rounded-full text-xs font-bold uppercase tracking-wide">
                   Paling Laris
                 </div>
               )}
@@ -257,7 +257,7 @@ export default function DashboardPage() {
                 disabled={paymentLoading === (isYearly ? `${plan.id}_yearly` : plan.id)}
                 className={`w-full py-3 px-4 rounded-xl font-bold transition-all flex justify-center items-center gap-2 ${
                   plan.recommended 
-                    ? 'bg-primary text-white hover:bg-primary/90 shadow-md' 
+                    ? 'bg-[#FF9800] text-white hover:bg-[#e68900] shadow-md' 
                     : 'bg-neutral-100 text-neutral-800 hover:bg-neutral-200'
                 } disabled:opacity-70 disabled:cursor-not-allowed`}
               >
