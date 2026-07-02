@@ -1,7 +1,18 @@
+"use client";
+
+import { useState } from "react";
 import Link from "next/link";
 import { MessageCircle, Zap, Shield, ArrowRight } from "lucide-react";
 
+const PLANS = [
+  { id: "starter", name: "Starter", price: 50000, priceYearly: 500000, max_devices: 1, limit: 1000, desc: "Cocok untuk pemula dan bisnis kecil" },
+  { id: "business", name: "Business", price: 150000, priceYearly: 1500000, max_devices: 3, limit: 10000, desc: "Cocok untuk UMKM dan toko online", recommended: true },
+  { id: "pro", name: "Pro", price: 300000, priceYearly: 3000000, max_devices: 5, limit: 50000, desc: "Untuk perusahaan dengan volume tinggi" },
+];
+
 export default function Home() {
+  const [isYearly, setIsYearly] = useState(false);
+
   return (
     <div className="min-h-screen flex flex-col font-sans">
       <nav className="fixed w-full z-50 bg-background/80 backdrop-blur-md border-b border-neutral/20">
@@ -97,6 +108,113 @@ export default function Home() {
                   </div>
                   <h3 className="text-xl font-bold mb-3">{f.title}</h3>
                   <p className="text-neutral-600 dark:text-neutral-400">{f.desc}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Pricing Section */}
+        <section className="py-24" id="pricing">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center mb-16">
+              <h2 className="text-3xl md:text-4xl font-bold mb-4">Investasi Terbaik untuk Bisnis Anda</h2>
+              <p className="text-neutral-600 dark:text-neutral-400 max-w-2xl mx-auto mb-8">
+                Mulai dari gratis, tingkatkan kapan saja sesuai dengan perkembangan bisnis Anda.
+              </p>
+              
+              <div className="inline-flex items-center gap-3 bg-neutral/5 p-1.5 rounded-full border border-neutral/10 shadow-sm mx-auto">
+                <button 
+                  onClick={() => setIsYearly(false)}
+                  className={`px-6 py-2 rounded-full text-sm font-bold transition-all ${!isYearly ? 'bg-primary text-white shadow' : 'text-neutral-500 hover:text-neutral-800'}`}
+                >
+                  Bulanan
+                </button>
+                <button 
+                  onClick={() => setIsYearly(true)}
+                  className={`px-6 py-2 rounded-full text-sm font-bold transition-all flex items-center gap-2 ${isYearly ? 'bg-primary text-white shadow' : 'text-neutral-500 hover:text-neutral-800'}`}
+                >
+                  Tahunan
+                  <span className={`text-[10px] uppercase px-2 py-0.5 rounded-full ${isYearly ? 'bg-white/20' : 'bg-green-100 text-green-700'}`}>Hemat 2 Bulan</span>
+                </button>
+              </div>
+            </div>
+            
+            <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+              {PLANS.map((plan) => (
+                <div 
+                  key={plan.id} 
+                  className={`bg-background rounded-2xl border ${plan.recommended ? 'border-primary ring-1 ring-primary shadow-lg shadow-primary/10' : 'border-neutral/10 shadow-sm'} p-8 relative flex flex-col hover:shadow-xl transition-shadow`}
+                >
+                  {plan.recommended && (
+                    <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-primary text-white px-4 py-1 rounded-full text-xs font-bold uppercase tracking-wide">
+                      Paling Populer
+                    </div>
+                  )}
+                  
+                  <h3 className="text-xl font-bold capitalize mb-2">{plan.name}</h3>
+                  <p className="text-neutral-500 text-sm h-10">{plan.desc}</p>
+                  
+                  <div className="my-6">
+                    <span className="text-3xl font-extrabold">Rp {isYearly ? plan.priceYearly.toLocaleString("id-ID") : plan.price.toLocaleString("id-ID")}</span>
+                    <span className="text-neutral-500"> / {isYearly ? 'tahun' : 'bulan'}</span>
+                  </div>
+                  
+                  <ul className="space-y-4 mb-8 flex-1">
+                    <li className="flex items-start gap-3">
+                      <div className="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
+                        <svg className="w-3.5 h-3.5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
+                      </div>
+                      <span className="text-sm font-medium">Limit {plan.limit.toLocaleString("id-ID")} Broadcast</span>
+                    </li>
+                    <li className="flex items-start gap-3">
+                      <div className="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
+                        <svg className="w-3.5 h-3.5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
+                      </div>
+                      <span className="text-sm font-medium">Maksimal {plan.max_devices} Nomor WA</span>
+                    </li>
+                    <li className="flex items-start gap-3">
+                      <div className="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
+                        <svg className="w-3.5 h-3.5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
+                      </div>
+                      <span className="text-sm font-medium">Jeda Dinamis & Personalisasi</span>
+                    </li>
+                  </ul>
+                  
+                  <Link
+                    href="/register"
+                    className={`w-full py-3 px-4 rounded-xl font-bold transition-all text-center ${
+                      plan.recommended 
+                        ? 'bg-primary text-white hover:bg-primary/90 shadow-md hover:shadow-lg' 
+                        : 'bg-neutral/10 text-neutral-800 hover:bg-neutral/20'
+                    }`}
+                  >
+                    Mulai Gratis
+                  </Link>
+                </div>
+              ))}
+            </div>
+            <p className="text-center text-sm text-neutral-500 mt-8">
+              Tidak perlu kartu kredit. Langsung dapat 100 limit gratis selamanya.
+            </p>
+          </div>
+        </section>
+
+        {/* FAQ Section */}
+        <section className="py-24 bg-neutral/5">
+          <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center mb-16">
+              <h2 className="text-3xl font-bold mb-4">Pertanyaan yang Sering Diajukan</h2>
+            </div>
+            <div className="space-y-6">
+              {[
+                { q: "Apakah akun WhatsApp saya aman dari blokir?", a: "Sistem kami menggunakan algoritma jeda dinamis (delay antar pesan yang natural) sehingga meminimalkan risiko blokir. Namun, kami tetap menyarankan untuk tidak mengirim pesan spam dan mematuhi pedoman WhatsApp." },
+                { q: "Apakah ada batasan waktu untuk paket Gratis?", a: "Tidak ada! Paket Free berlaku selamanya. Anda bisa menggunakannya untuk mengetes sistem, dan baru upgrade ketika bisnis Anda sudah membutuhkan limit yang lebih besar." },
+                { q: "Bagaimana cara pembayarannya?", a: "Kami mendukung berbagai metode pembayaran melalui Duitku, termasuk QRIS, Virtual Account bank besar, e-Wallet, dan kartu kredit. Pembayaran akan terkonfirmasi secara otomatis." }
+              ].map((faq, i) => (
+                <div key={i} className="bg-background rounded-2xl p-6 shadow-sm border border-neutral/10">
+                  <h4 className="text-lg font-bold mb-2">{faq.q}</h4>
+                  <p className="text-neutral-600 leading-relaxed">{faq.a}</p>
                 </div>
               ))}
             </div>

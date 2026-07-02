@@ -7,7 +7,7 @@ import { Loader2 } from "lucide-react";
 
 export default function LoginPage() {
   const router = useRouter();
-  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -23,13 +23,13 @@ export default function LoginPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           action: "check-access",
-          payload: { username, password },
+          payload: { username: email, password },
         }),
       });
 
       const data = await res.json();
       if (!data.status) {
-        setError(data.message || "Gagal login. Cek kembali username & password Anda.");
+        setError(data.message || "Gagal login. Cek kembali email & password Anda.");
       } else {
         // Save token to localStorage for the dashboard to use
         localStorage.setItem("tebar_token", data.data.token);
@@ -72,16 +72,16 @@ export default function LoginPage() {
             
             <div>
               <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300">
-                Username
+                Email
               </label>
               <div className="mt-1">
                 <input
-                  type="text"
+                  type="email"
                   required
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   className="appearance-none block w-full px-3 py-2 border border-neutral/30 rounded-lg shadow-sm placeholder-neutral-400 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm bg-transparent"
-                  placeholder="Masukkan username"
+                  placeholder="budi@example.com"
                 />
               </div>
             </div>

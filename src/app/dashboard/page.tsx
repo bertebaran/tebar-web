@@ -18,9 +18,9 @@ interface UserProfile {
 }
 
 const PLANS = [
-  { id: "starter", name: "Starter", price: 50000, max_devices: 1, limit: 1000, days: 30, desc: "Cocok untuk pemula dan bisnis kecil" },
-  { id: "business", name: "Business", price: 150000, max_devices: 3, limit: 10000, days: 30, desc: "Cocok untuk UMKM dan toko online", recommended: true },
-  { id: "pro", name: "Pro", price: 300000, max_devices: 5, limit: 50000, days: 30, desc: "Untuk perusahaan dengan volume tinggi" },
+  { id: "starter", name: "Starter", price: 50000, priceYearly: 500000, max_devices: 1, limit: 1000, days: 30, desc: "Cocok untuk pemula dan bisnis kecil" },
+  { id: "business", name: "Business", price: 150000, priceYearly: 1500000, max_devices: 3, limit: 10000, days: 30, desc: "Cocok untuk UMKM dan toko online", recommended: true },
+  { id: "pro", name: "Pro", price: 300000, priceYearly: 3000000, max_devices: 5, limit: 50000, days: 30, desc: "Untuk perusahaan dengan volume tinggi" },
 ];
 
 export default function DashboardPage() {
@@ -28,6 +28,7 @@ export default function DashboardPage() {
   const [user, setUser] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [paymentLoading, setPaymentLoading] = useState<string | null>(null);
+  const [isYearly, setIsYearly] = useState(false);
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -141,6 +142,14 @@ export default function DashboardPage() {
           </div>
         )}
 
+        {/* Nudge Warning (Quota >= 80%) */}
+        {user && ((user.broadcast_used / user.broadcast_limit) >= 0.8) && (
+          <div className="mb-8 bg-amber-50 border border-amber-200 text-amber-800 px-4 py-3 rounded-xl flex items-center gap-3 shadow-sm">
+            <AlertCircle className="w-5 h-5 flex-shrink-0 text-amber-600" />
+            <p className="font-medium">⚠️ Kuota broadcast Anda hampir habis! Segera perpanjang atau upgrade paket agar promosi tidak terhenti.</p>
+          </div>
+        )}
+
         {/* Profile Card */}
         <div className="bg-white rounded-2xl shadow-sm border border-neutral/10 p-6 md:p-8 mb-10 relative overflow-hidden">
           <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -mr-20 -mt-20"></div>
@@ -189,7 +198,23 @@ export default function DashboardPage() {
         {/* Pricing Section */}
         <div className="text-center mb-10">
           <h2 className="text-3xl font-bold mb-3">Tingkatkan Performa Anda</h2>
-          <p className="text-neutral-600">Pilih paket yang sesuai dengan kebutuhan bisnis Anda.</p>
+          <p className="text-neutral-600 mb-8">Pilih paket yang sesuai dengan kebutuhan bisnis Anda.</p>
+          
+          <div className="inline-flex items-center gap-3 bg-white p-1.5 rounded-full border border-neutral/20 shadow-sm mx-auto">
+            <button 
+              onClick={() => setIsYearly(false)}
+              className={`px-6 py-2 rounded-full text-sm font-bold transition-all ${!isYearly ? 'bg-primary text-white shadow' : 'text-neutral-500 hover:text-neutral-800'}`}
+            >
+              Bulanan
+            </button>
+            <button 
+              onClick={() => setIsYearly(true)}
+              className={`px-6 py-2 rounded-full text-sm font-bold transition-all flex items-center gap-2 ${isYearly ? 'bg-primary text-white shadow' : 'text-neutral-500 hover:text-neutral-800'}`}
+            >
+              Tahunan
+              <span className={`text-[10px] uppercase px-2 py-0.5 rounded-full ${isYearly ? 'bg-white/20' : 'bg-green-100 text-green-700'}`}>Hemat 2 Bulan</span>
+            </button>
+          </div>
         </div>
 
         <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
@@ -208,8 +233,8 @@ export default function DashboardPage() {
               <p className="text-neutral-500 text-sm h-10">{plan.desc}</p>
               
               <div className="my-6">
-                <span className="text-3xl font-extrabold">Rp {plan.price.toLocaleString("id-ID")}</span>
-                <span className="text-neutral-500"> / bulan</span>
+                <span className="text-3xl font-extrabold">Rp {isYearly ? plan.priceYearly.toLocaleString("id-ID") : plan.price.toLocaleString("id-ID")}</span>
+                <span className="text-neutral-500"> / {isYearly ? 'tahun' : 'bulan'}</span>
               </div>
               
               <ul className="space-y-4 mb-8 flex-1">
@@ -228,20 +253,20 @@ export default function DashboardPage() {
               </ul>
               
               <button
-                onClick={() => handleBuy(plan.id)}
-                disabled={paymentLoading === plan.id}
+                onClick={() => handleBuy(isYearly ? `${plan.id}_yearly` : plan.id)}
+                disabled={paymentLoading === (isYearly ? `${plan.id}_yearly` : plan.id)}
                 className={`w-full py-3 px-4 rounded-xl font-bold transition-all flex justify-center items-center gap-2 ${
                   plan.recommended 
                     ? 'bg-primary text-white hover:bg-primary/90 shadow-md' 
                     : 'bg-neutral-100 text-neutral-800 hover:bg-neutral-200'
                 } disabled:opacity-70 disabled:cursor-not-allowed`}
               >
-                {paymentLoading === plan.id ? (
+                {paymentLoading === (isYearly ? `${plan.id}_yearly` : plan.id) ? (
                   <>
                     <Loader2 className="w-5 h-5 animate-spin" /> Memproses...
                   </>
                 ) : (
-                  user?.plan === plan.id ? "Perpanjang Paket" : "Pilih Paket"
+                  user?.plan === plan.id || user?.plan === `${plan.id}_yearly` ? "Perpanjang Paket" : "Pilih Paket"
                 )}
               </button>
             </div>

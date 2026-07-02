@@ -8,10 +8,9 @@ import { Loader2 } from "lucide-react";
 export default function RegisterPage() {
   const router = useRouter();
   const [formData, setFormData] = useState({
-    username: "",
-    password: "",
     name: "",
     email: "",
+    password: "",
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -38,12 +37,32 @@ export default function RegisterPage() {
 
       const data = await res.json();
       if (!data.status) {
-        setError(data.message || "Gagal mendaftar. Username mungkin sudah dipakai.");
+        setError(data.message || "Gagal mendaftar. Email mungkin sudah dipakai.");
       } else {
-        setSuccess(true);
-        setTimeout(() => {
-          router.push("/login");
-        }, 2000);
+        // Auto-login setelah register
+        const loginRes = await fetch("/api/supabase", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            action: "check-access",
+            payload: { username: formData.email, password: formData.password },
+          }),
+        });
+        const loginData = await loginRes.json();
+        
+        if (loginData.status && loginData.data?.token) {
+          localStorage.setItem("tebar_token", loginData.data.token);
+          setSuccess(true);
+          setTimeout(() => {
+            router.push("/dashboard");
+          }, 1000);
+        } else {
+          // Fallback jika auto-login gagal
+          setSuccess(true);
+          setTimeout(() => {
+            router.push("/login");
+          }, 1500);
+        }
       }
     } catch (err) {
       setError("Terjadi kesalahan sistem. Silakan coba lagi.");
@@ -117,23 +136,6 @@ export default function RegisterPage() {
                     onChange={handleChange}
                     className="appearance-none block w-full px-3 py-2 border border-neutral/30 rounded-lg shadow-sm placeholder-neutral-400 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm bg-transparent"
                     placeholder="budi@example.com"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300">
-                  Username
-                </label>
-                <div className="mt-1">
-                  <input
-                    type="text"
-                    name="username"
-                    required
-                    value={formData.username}
-                    onChange={handleChange}
-                    className="appearance-none block w-full px-3 py-2 border border-neutral/30 rounded-lg shadow-sm placeholder-neutral-400 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm bg-transparent"
-                    placeholder="budisantoso"
                   />
                 </div>
               </div>
