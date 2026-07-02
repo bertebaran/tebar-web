@@ -30,6 +30,7 @@ export default function DashboardPage() {
   const [paymentLoading, setPaymentLoading] = useState<string | null>(null);
   const [isYearly, setIsYearly] = useState(false);
   const [error, setError] = useState("");
+  const [stats, setStats] = useState<{ dailySent: number } | null>(null);
 
   useEffect(() => {
     const token = localStorage.getItem("tebar_token");
@@ -55,6 +56,17 @@ export default function DashboardPage() {
         } else {
           localStorage.removeItem("tebar_token");
           router.push("/login");
+          return;
+        }
+
+        const resStats = await fetch("/api/supabase", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "stats", payload: { token } }),
+        });
+        const dataStats = await resStats.json();
+        if (dataStats.status && dataStats.data) {
+          setStats(dataStats.data);
         }
       } catch (err) {
         setError("Gagal memuat profil. Silakan muat ulang halaman.");
@@ -191,6 +203,31 @@ export default function DashboardPage() {
               <p className="text-xs text-neutral-500 mt-2">
                 Dipakai bersama dalam 1 akun
               </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Analytics Card */}
+        <div className="bg-white text-neutral-900 rounded-2xl shadow-sm border border-neutral/10 p-6 md:p-8 mb-10 relative overflow-hidden">
+          <h2 className="text-2xl font-bold mb-6">Analytics (Hari Ini)</h2>
+          <div className="grid md:grid-cols-2 gap-6 relative z-10">
+            <div className="bg-neutral/5 rounded-xl p-5 border border-neutral/10 flex items-center justify-between">
+              <div>
+                <p className="text-sm text-neutral-500 mb-1 font-medium">Total Terkirim</p>
+                <p className="text-3xl font-bold text-primary">{stats?.dailySent || 0}</p>
+              </div>
+              <div className="w-12 h-12 rounded-full bg-teal-100 flex items-center justify-center text-teal-600">
+                <CheckCircle2 className="w-6 h-6" />
+              </div>
+            </div>
+            <div className="bg-neutral/5 rounded-xl p-5 border border-neutral/10 flex items-center justify-between">
+              <div>
+                <p className="text-sm text-neutral-500 mb-1 font-medium">Sisa Kuota Harian (Batas Wajar)</p>
+                <p className="text-3xl font-bold text-orange-500">Normal</p>
+              </div>
+              <div className="w-12 h-12 rounded-full bg-orange-100 flex items-center justify-center text-orange-600">
+                <AlertCircle className="w-6 h-6" />
+              </div>
             </div>
           </div>
         </div>
