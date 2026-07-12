@@ -5,23 +5,19 @@ import Link from "next/link";
 import { MessageCircle, Zap, Shield, ArrowRight } from "lucide-react";
 
 const PLANS = [
-  { id: "starter", name: "Starter", price: 50000, priceYearly: 500000, max_devices: 1, limit: 1000, desc: "Cocok untuk pemula dan bisnis kecil" },
-  { id: "business", name: "Business", price: 150000, priceYearly: 1500000, max_devices: 3, limit: 10000, desc: "Cocok untuk UMKM dan toko online", recommended: true },
-  { id: "pro", name: "Pro", price: 300000, priceYearly: 3000000, max_devices: 5, limit: 50000, desc: "Untuk perusahaan dengan volume tinggi" },
+  { id: "gratis", name: "Gratis", priceText: "Rp 0", period: "selamanya", max_devices: 1, limitText: "10 Nomor / hari", desc: "Cocok untuk mencoba tebar.io" },
+  { id: "1bulan", name: "1 Bulan", priceText: "Rp 25.000", period: "bulan", max_devices: 5, limitText: "Unlimited Kirim Pesan", desc: "Berlangganan bulanan fleksibel" },
+  { id: "1tahun", name: "1 Tahun", priceText: "Rp 199.000", period: "tahun", max_devices: 5, limitText: "Unlimited Kirim Pesan", desc: "Lebih hemat untuk jangka panjang", recommended: true },
+  { id: "lifetime", name: "Lifetime", priceText: "Rp 549.000", period: "selamanya", max_devices: 5, limitText: "Unlimited Kirim Pesan", desc: "Bayar sekali, pakai seumur hidup" },
 ];
 
 export default function Home() {
-  const [isYearly, setIsYearly] = useState(false);
-
   return (
     <div className="min-h-screen flex flex-col font-sans">
       <nav className="fixed w-full z-50 bg-background/80 backdrop-blur-md border-b border-neutral/20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-white font-bold text-xl">
-              T
-            </div>
-            <span className="text-xl font-bold tracking-tight">tebar.io</span>
+            <img src="/tebar-logo-horizontal.svg" alt="tebar.io" className="h-8 w-auto" />
           </div>
           <div className="flex items-center gap-4">
             <Link href="/login" className="text-sm font-medium hover:text-primary transition-colors">
@@ -123,31 +119,16 @@ export default function Home() {
                 Mulai dari gratis, tingkatkan kapan saja sesuai dengan perkembangan bisnis Anda.
               </p>
               
-              <div className="inline-flex items-center gap-3 bg-neutral/5 p-1.5 rounded-full border border-neutral/10 shadow-sm mx-auto">
-                <button 
-                  onClick={() => setIsYearly(false)}
-                  className={`px-6 py-2 rounded-full text-sm font-bold transition-all ${!isYearly ? 'bg-primary text-white shadow' : 'text-neutral-500 hover:text-neutral-800'}`}
-                >
-                  Bulanan
-                </button>
-                <button 
-                  onClick={() => setIsYearly(true)}
-                  className={`px-6 py-2 rounded-full text-sm font-bold transition-all flex items-center gap-2 ${isYearly ? 'bg-primary text-white shadow' : 'text-neutral-500 hover:text-neutral-800'}`}
-                >
-                  Tahunan
-                  <span className={`text-[10px] uppercase px-2 py-0.5 rounded-full ${isYearly ? 'bg-white/20' : 'bg-green-100 text-green-700'}`}>Hemat 2 Bulan</span>
-                </button>
-              </div>
-            </div>
+                          </div>
             
-            <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto">
               {PLANS.map((plan) => (
                 <div 
                   key={plan.id} 
                   className={`bg-white text-neutral-900 rounded-2xl border ${plan.recommended ? 'border-primary ring-1 ring-primary shadow-lg shadow-primary/10' : 'border-neutral/20 shadow-sm'} p-8 relative flex flex-col hover:shadow-xl transition-shadow`}
                 >
                   {plan.recommended && (
-                    <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-[#FF9800] text-white px-4 py-1 rounded-full text-xs font-bold uppercase tracking-wide">
+                    <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-[#F59E0B] text-[#3A2600] px-4 py-1 rounded-full text-xs font-bold uppercase tracking-wide">
                       Paling Populer
                     </div>
                   )}
@@ -156,8 +137,8 @@ export default function Home() {
                   <p className="text-neutral-500 text-sm h-10">{plan.desc}</p>
                   
                   <div className="my-6">
-                    <span className="text-3xl font-extrabold">Rp {isYearly ? plan.priceYearly.toLocaleString("id-ID") : plan.price.toLocaleString("id-ID")}</span>
-                    <span className="text-neutral-500"> / {isYearly ? 'tahun' : 'bulan'}</span>
+                    <span className="text-3xl font-extrabold">{plan.priceText}</span>
+                    <span className="text-neutral-500"> / {plan.period}</span>
                   </div>
                   
                   <ul className="space-y-4 mb-8 flex-1">
@@ -165,7 +146,7 @@ export default function Home() {
                       <div className="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
                         <svg className="w-3.5 h-3.5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
                       </div>
-                      <span className="text-sm font-medium">Limit {plan.limit.toLocaleString("id-ID")} Broadcast</span>
+                      <span className="text-sm font-medium">{plan.limitText}</span>
                     </li>
                     <li className="flex items-start gap-3">
                       <div className="w-5 h-5 rounded-full bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
@@ -185,18 +166,16 @@ export default function Home() {
                     href="/register"
                     className={`w-full py-3 px-4 rounded-xl font-bold transition-all text-center ${
                       plan.recommended 
-                        ? 'bg-[#FF9800] text-white hover:bg-[#e68900] shadow-md hover:shadow-lg' 
+                        ? 'bg-[#F59E0B] text-[#3A2600] hover:bg-[#D97706] shadow-md hover:shadow-lg' 
                         : 'bg-neutral-100 text-neutral-800 hover:bg-neutral-200'
                     }`}
                   >
-                    Mulai Gratis
+                    {plan.id === "gratis" ? "Mulai Gratis" : "Pilih Paket"}
                   </Link>
                 </div>
               ))}
             </div>
-            <p className="text-center text-sm text-neutral-500 mt-8">
-              Tidak perlu kartu kredit. Langsung dapat 100 limit gratis selamanya.
-            </p>
+            
           </div>
         </section>
 
