@@ -2,9 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2, CheckCircle2, AlertCircle, LogOut } from "lucide-react";
+import { Loader2, CheckCircle2, AlertCircle, LogOut, X, ShieldCheck } from "lucide-react";
 import { format } from "date-fns";
 import { id } from "date-fns/locale";
+import Script from "next/script";
 
 interface UserProfile {
   id: string;
@@ -31,6 +32,8 @@ export default function DashboardPage() {
   const [isYearly, setIsYearly] = useState(false);
   const [error, setError] = useState("");
   const [stats, setStats] = useState<{ dailySent: number } | null>(null);
+  const [checkoutPlan, setCheckoutPlan] = useState<string | null>(null);
+  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem("tebar_token");
@@ -78,11 +81,16 @@ export default function DashboardPage() {
     fetchProfile();
   }, [router]);
 
-  const handleBuy = async (planId: string) => {
+  const handleBuy = (planId: string) => {
+    setCheckoutPlan(planId);
+  };
+
+  const handleProcessPayment = async () => {
+    if (!checkoutPlan) return;
     const token = localStorage.getItem("tebar_token");
     if (!token) return;
 
-    setPaymentLoading(planId);
+    setIsProcessingPayment(true);
     setError("");
 
     try {
@@ -91,20 +99,35 @@ export default function DashboardPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           action: "create-payment",
-          payload: { token, plan: planId },
+          payload: { token, plan: checkoutPlan },
         }),
       });
 
-      const data = await res.json();
-      if (data.status && data.data?.paymentUrl) {
-        window.location.href = data.data.paymentUrl; // Redirect ke Duitku
-      } else {
-        setError(data.message || "Gagal membuat transaksi. Coba beberapa saat lagi.");
+      const json = await res.json();
+      const ref = json?.data?.reference;
+      
+      if (!ref) {
+        alert(json?.message || "Gagal memulai pembayaran");
+        setIsProcessingPayment(false);
+        return;
       }
+
+      // Tutup modal checkout branded kita
+      setCheckoutPlan(null);
+      setIsProcessingPayment(false);
+
+      // Panggil popup Duitku
+      (window as any).checkout.process(ref, {
+        defaultLanguage: "id",
+        successEvent: () => { window.location.href = "/payment/return?status=success"; },
+        pendingEvent: () => { window.location.href = "/payment/return?status=pending"; },
+        errorEvent:   () => { alert("Pembayaran gagal. Silakan coba lagi."); },
+        closeEvent:   () => { /* user menutup popup tanpa bayar */ },
+      });
+
     } catch (err) {
-      setError("Kesalahan jaringan saat memproses pembayaran.");
-    } finally {
-      setPaymentLoading(null);
+      alert("Kesalahan jaringan saat memproses pembayaran.");
+      setIsProcessingPayment(false);
     }
   };
 
@@ -126,10 +149,7 @@ export default function DashboardPage() {
       <nav className="bg-white text-neutral-900 border-b border-neutral/10 shadow-sm sticky top-0 z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-white font-bold text-xl">
-              T
-            </div>
-            <span className="text-xl font-bold tracking-tight">tebar.io</span>
+            <img src="/tebar-logo-horizontal.svg" alt="tebar.io" className="h-8 w-auto" />
           </div>
           <div className="flex items-center gap-4">
             <span className="text-sm font-medium text-neutral-600 hidden sm:block">
@@ -189,7 +209,7 @@ export default function DashboardPage() {
               </div>
               <div className="w-full bg-neutral-200 rounded-full h-1.5 mt-3 overflow-hidden">
                 <div 
-                  className="bg-[#FF9800] h-1.5 rounded-full transition-all duration-1000 ease-out" 
+                  className="bg-[#F59E0B] h-1.5 rounded-full transition-all duration-1000 ease-out" 
                   style={{ width: `${Math.min(100, ((user?.broadcast_used || 0) / (user?.broadcast_limit || 1)) * 100)}%` }}
                 ></div>
               </div>
@@ -216,16 +236,16 @@ export default function DashboardPage() {
                 <p className="text-sm text-neutral-500 mb-1 font-medium">Total Terkirim</p>
                 <p className="text-3xl font-bold text-primary">{stats?.dailySent || 0}</p>
               </div>
-              <div className="w-12 h-12 rounded-full bg-teal-100 flex items-center justify-center text-teal-600">
+              <div className="w-12 h-12 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600">
                 <CheckCircle2 className="w-6 h-6" />
               </div>
             </div>
             <div className="bg-neutral/5 rounded-xl p-5 border border-neutral/10 flex items-center justify-between">
               <div>
                 <p className="text-sm text-neutral-500 mb-1 font-medium">Sisa Kuota Harian (Batas Wajar)</p>
-                <p className="text-3xl font-bold text-orange-500">Normal</p>
+                <p className="text-3xl font-bold text-amber-500">Normal</p>
               </div>
-              <div className="w-12 h-12 rounded-full bg-orange-100 flex items-center justify-center text-orange-600">
+              <div className="w-12 h-12 rounded-full bg-amber-100 flex items-center justify-center text-amber-600">
                 <AlertCircle className="w-6 h-6" />
               </div>
             </div>
@@ -261,7 +281,7 @@ export default function DashboardPage() {
               className={`bg-white text-neutral-900 rounded-2xl border ${plan.recommended ? 'border-primary ring-1 ring-primary shadow-lg shadow-primary/10' : 'border-neutral/20 shadow-sm'} p-8 relative flex flex-col`}
             >
               {plan.recommended && (
-                <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-[#FF9800] text-white px-4 py-1 rounded-full text-xs font-bold uppercase tracking-wide">
+                <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-[#F59E0B] text-[#3A2600] px-4 py-1 rounded-full text-xs font-bold uppercase tracking-wide">
                   Paling Laris
                 </div>
               )}
@@ -291,25 +311,92 @@ export default function DashboardPage() {
               
               <button
                 onClick={() => handleBuy(isYearly ? `${plan.id}_yearly` : plan.id)}
-                disabled={paymentLoading === (isYearly ? `${plan.id}_yearly` : plan.id)}
                 className={`w-full py-3 px-4 rounded-xl font-bold transition-all flex justify-center items-center gap-2 ${
                   plan.recommended 
-                    ? 'bg-[#FF9800] text-white hover:bg-[#e68900] shadow-md' 
+                    ? 'bg-[#F59E0B] text-[#3A2600] hover:bg-[#D97706] shadow-md' 
                     : 'bg-neutral-100 text-neutral-800 hover:bg-neutral-200'
                 } disabled:opacity-70 disabled:cursor-not-allowed`}
               >
-                {paymentLoading === (isYearly ? `${plan.id}_yearly` : plan.id) ? (
-                  <>
-                    <Loader2 className="w-5 h-5 animate-spin" /> Memproses...
-                  </>
-                ) : (
-                  user?.plan === plan.id || user?.plan === `${plan.id}_yearly` ? "Perpanjang Paket" : "Pilih Paket"
-                )}
+                {user?.plan === plan.id || user?.plan === `${plan.id}_yearly` ? "Perpanjang Paket" : "Pilih Paket"}
               </button>
             </div>
           ))}
         </div>
       </main>
+
+      {/* Branded Checkout Modal */}
+      {checkoutPlan && (() => {
+        const isPlanYearly = checkoutPlan.endsWith("_yearly");
+        const basePlanId = checkoutPlan.replace("_yearly", "");
+        const plan = PLANS.find(p => p.id === basePlanId);
+        
+        if (!plan) return null;
+        
+        return (
+          <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-4 backdrop-blur-sm">
+            <div className="bg-white rounded-2xl w-full max-w-md overflow-hidden shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+              
+              <div className="bg-[#4F46E5] p-6 text-white relative">
+                <button onClick={() => setCheckoutPlan(null)} className="absolute top-4 right-4 text-white/80 hover:text-white bg-black/10 hover:bg-black/20 rounded-full p-1 transition-colors">
+                  <X className="w-5 h-5" />
+                </button>
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-inner">
+                    <div className="w-8 h-8 rounded-full bg-[#4F46E5] flex items-center justify-center">
+                      <span className="text-white font-bold text-lg">T</span>
+                    </div>
+                  </div>
+                  <h3 className="text-xl font-bold">tebar.io Checkout</h3>
+                </div>
+                <p className="text-indigo-100/80 text-sm">Selesaikan pembayaran untuk mengaktifkan paket Anda.</p>
+              </div>
+              
+              <div className="p-6">
+                <div className="bg-neutral/5 rounded-xl p-4 border border-neutral/10 mb-6">
+                  <div className="flex justify-between items-start mb-2">
+                    <div>
+                      <p className="text-xs text-neutral-500 font-medium uppercase tracking-wider mb-1">Paket Terpilih</p>
+                      <h4 className="text-xl font-bold text-neutral-900 capitalize">{plan.name} <span className="text-sm font-normal text-neutral-500">({isPlanYearly ? 'Tahunan' : 'Bulanan'})</span></h4>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-2xl font-extrabold text-[#F59E0B]">
+                        Rp {isPlanYearly ? plan.priceYearly.toLocaleString("id-ID") : plan.price.toLocaleString("id-ID")}
+                      </p>
+                    </div>
+                  </div>
+                  <hr className="border-neutral/10 my-3" />
+                  <ul className="space-y-2 text-sm text-neutral-600">
+                    <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-[#4F46E5]" /> Limit {plan.limit.toLocaleString("id-ID")} Broadcast</li>
+                    <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-[#4F46E5]" /> Maks. {plan.max_devices} Nomor Terhubung</li>
+                  </ul>
+                </div>
+                
+                <button 
+                  onClick={handleProcessPayment}
+                  disabled={isProcessingPayment}
+                  className="w-full bg-[#F59E0B] hover:bg-[#D97706] text-[#3A2600] py-4 rounded-xl font-bold text-lg transition-colors flex justify-center items-center gap-2 shadow-lg shadow-amber-500/30 disabled:opacity-70 disabled:cursor-not-allowed"
+                >
+                  {isProcessingPayment ? (
+                    <><Loader2 className="w-5 h-5 animate-spin" /> Sedang Memproses...</>
+                  ) : "Bayar Sekarang"}
+                </button>
+                
+                <div className="mt-4 flex items-center justify-center gap-2 text-xs text-neutral-500">
+                  <ShieldCheck className="w-4 h-4 text-green-600" />
+                  <span>Pembayaran aman via <strong>Duitku</strong></span>
+                </div>
+              </div>
+              
+            </div>
+          </div>
+        );
+      })()}
+
+      {process.env.NEXT_PUBLIC_DUITKU_ENV === 'sandbox' ? (
+        <Script src="https://app-sandbox.duitku.com/lib/js/duitku.js" strategy="afterInteractive" />
+      ) : (
+        <Script src="https://app-prod.duitku.com/lib/js/duitku.js" strategy="afterInteractive" />
+      )}
     </div>
   );
 }

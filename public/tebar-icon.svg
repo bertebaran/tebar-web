@@ -1,0 +1,20 @@
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="tebarBg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#6366F1"/>
+      <stop offset="1" stop-color="#4338CA"/>
+    </linearGradient>
+  </defs>
+  <rect x="16" y="16" width="480" height="480" rx="116" fill="url(#tebarBg)"/>
+  <!-- motif "tebar": titik menyebar dari kiri-bawah ke kanan-atas -->
+  <g fill="#FFFFFF">
+    <circle cx="150" cy="372" r="40"/>
+    <circle cx="242" cy="312" r="26"/>
+    <circle cx="392" cy="224" r="13"/>
+    <circle cx="446" cy="188" r="9"/>
+    <circle cx="300" cy="366" r="15"/>
+    <circle cx="398" cy="318" r="10"/>
+  </g>
+  <!-- aksen amber -->
+  <circle cx="322" cy="262" r="19" fill="#F59E0B"/>
+</svg>

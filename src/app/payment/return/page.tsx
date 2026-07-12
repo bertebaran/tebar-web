@@ -1,72 +1,81 @@
 "use client";
 
 import { useEffect, useState, Suspense } from "react";
-import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { CheckCircle2, XCircle, Clock } from "lucide-react";
+import { CheckCircle2, Clock, AlertCircle, ArrowRight } from "lucide-react";
+import Link from "next/link";
 
 function ReturnContent() {
   const searchParams = useSearchParams();
-  const merchantOrderId = searchParams.get("merchantOrderId");
-  const resultCode = searchParams.get("resultCode");
-  
-  // Duitku resultCode: "00" = Success, "01" = Pending, etc.
-  const isSuccess = resultCode === "00";
-  const isPending = resultCode === "01";
+  const status = searchParams.get("status");
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) return null;
+
+  const isSuccess = status === "success";
+  const isPending = status === "pending";
 
   return (
-    <div className="bg-white p-8 rounded-2xl shadow-xl shadow-neutral/5 border border-neutral/10 w-full max-w-md text-center">
-      <div className="flex justify-center mb-6">
+    <div className="min-h-screen bg-neutral/5 flex flex-col items-center justify-center p-4">
+      <div className="bg-white rounded-2xl max-w-md w-full p-8 shadow-xl text-center border border-neutral/10">
+        
         {isSuccess ? (
-          <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center text-green-500">
-            <CheckCircle2 className="w-10 h-10" />
-          </div>
+          <>
+            <div className="w-20 h-20 bg-indigo-100 text-[#4F46E5] rounded-full flex items-center justify-center mx-auto mb-6">
+              <CheckCircle2 className="w-10 h-10" />
+            </div>
+            <h1 className="text-2xl font-bold text-neutral-900 mb-2">Pembayaran Berhasil!</h1>
+            <p className="text-neutral-600 mb-6">
+              Terima kasih! Pembayaran Anda telah kami terima dan paket Anda sedang diaktifkan.
+            </p>
+          </>
         ) : isPending ? (
-          <div className="w-20 h-20 bg-amber-100 rounded-full flex items-center justify-center text-amber-500">
-            <Clock className="w-10 h-10" />
-          </div>
+          <>
+            <div className="w-20 h-20 bg-amber-100 text-[#F59E0B] rounded-full flex items-center justify-center mx-auto mb-6">
+              <Clock className="w-10 h-10" />
+            </div>
+            <h1 className="text-2xl font-bold text-neutral-900 mb-2">Menunggu Pembayaran</h1>
+            <p className="text-neutral-600 mb-6">
+              Silakan selesaikan instruksi pembayaran yang telah diberikan. Kami sedang menunggu konfirmasi pembayaran Anda.
+            </p>
+          </>
         ) : (
-          <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center text-red-500">
-            <XCircle className="w-10 h-10" />
-          </div>
+          <>
+            <div className="w-20 h-20 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-6">
+              <AlertCircle className="w-10 h-10" />
+            </div>
+            <h1 className="text-2xl font-bold text-neutral-900 mb-2">Status Tidak Dikenal</h1>
+            <p className="text-neutral-600 mb-6">
+              Maaf, kami tidak dapat memverifikasi status pembayaran ini secara langsung.
+            </p>
+          </>
         )}
-      </div>
 
-      <h1 className="text-2xl font-bold mb-2">
-        {isSuccess ? "Pembayaran Berhasil" : isPending ? "Menunggu Pembayaran" : "Pembayaran Gagal"}
-      </h1>
-      
-      <p className="text-neutral-500 mb-8">
-        {isSuccess 
-          ? "Terima kasih! Pembayaran Anda telah kami terima dan paket langganan Anda sedang diaktifkan." 
-          : isPending 
-          ? "Silakan selesaikan instruksi pembayaran Anda. Paket akan otomatis aktif setelah pembayaran dikonfirmasi."
-          : "Maaf, transaksi Anda tidak dapat diproses atau telah dibatalkan."}
-      </p>
-
-      {merchantOrderId && (
-        <div className="bg-neutral/5 p-4 rounded-xl mb-8">
-          <p className="text-xs text-neutral-500 uppercase font-semibold mb-1">ID Transaksi</p>
-          <p className="font-mono text-sm">{merchantOrderId}</p>
+        <div className="bg-neutral-50 rounded-xl p-4 mb-8 text-sm text-neutral-500 border border-neutral-100">
+          <p>
+            <strong>Catatan:</strong> Status final langganan Anda selalu mengikuti informasi resmi di Dashboard. Proses aktivasi sistem mungkin membutuhkan waktu beberapa menit.
+          </p>
         </div>
-      )}
 
-      <Link 
-        href="/dashboard" 
-        className="block w-full py-3 px-4 bg-primary hover:bg-primary/90 text-white rounded-xl font-medium transition-colors"
-      >
-        Kembali ke Dashboard
-      </Link>
+        <Link 
+          href="/dashboard" 
+          className="inline-flex w-full items-center justify-center gap-2 bg-[#4F46E5] hover:bg-[#4338CA] text-white py-3 px-6 rounded-xl font-bold transition-colors shadow-lg shadow-indigo-700/20"
+        >
+          Ke Dashboard <ArrowRight className="w-4 h-4" />
+        </Link>
+      </div>
     </div>
   );
 }
 
 export default function PaymentReturnPage() {
   return (
-    <div className="min-h-screen bg-neutral/5 flex items-center justify-center p-4">
-      <Suspense fallback={<div className="animate-pulse w-full max-w-md h-96 bg-white rounded-2xl"></div>}>
-        <ReturnContent />
-      </Suspense>
-    </div>
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-neutral/5"><div className="w-8 h-8 animate-spin border-4 border-[#4F46E5] border-t-transparent rounded-full"></div></div>}>
+      <ReturnContent />
+    </Suspense>
   );
 }
