@@ -18,18 +18,19 @@ interface UserProfile {
   expires_at: string | null;
 }
 
-const PLANS = [
-  { id: "starter", name: "Starter", price: 50000, priceYearly: 500000, max_devices: 1, limit: 1000, days: 30, desc: "Cocok untuk pemula dan bisnis kecil" },
-  { id: "business", name: "Business", price: 150000, priceYearly: 1500000, max_devices: 3, limit: 10000, days: 30, desc: "Cocok untuk UMKM dan toko online", recommended: true },
-  { id: "pro", name: "Pro", price: 300000, priceYearly: 3000000, max_devices: 5, limit: 50000, days: 30, desc: "Untuk perusahaan dengan volume tinggi" },
+type Plan = { id: string; name: string; price: number; priceText: string; period: string; max_devices: number; limitText: string; desc: string; recommended?: boolean; free?: boolean };
+
+const PLANS: Plan[] = [
+  { id: "gratis", name: "Gratis", price: 0, priceText: "Rp 0", period: "selamanya", max_devices: 1, limitText: "10 Nomor / hari", desc: "Cocok untuk mencoba tebar.io", free: true },
+  { id: "1bulan", name: "1 Bulan", price: 25000, priceText: "Rp 25.000", period: "bulan", max_devices: 5, limitText: "Unlimited Kirim Pesan", desc: "Berlangganan bulanan fleksibel" },
+  { id: "1tahun", name: "1 Tahun", price: 199000, priceText: "Rp 199.000", period: "tahun", max_devices: 5, limitText: "Unlimited Kirim Pesan", desc: "Lebih hemat untuk jangka panjang", recommended: true },
+  { id: "lifetime", name: "Lifetime", price: 549000, priceText: "Rp 549.000", period: "selamanya", max_devices: 5, limitText: "Unlimited Kirim Pesan", desc: "Bayar sekali, pakai seumur hidup" }
 ];
 
 export default function DashboardPage() {
   const router = useRouter();
   const [user, setUser] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
-  const [paymentLoading, setPaymentLoading] = useState<string | null>(null);
-  const [isYearly, setIsYearly] = useState(false);
   const [error, setError] = useState("");
   const [stats, setStats] = useState<{ dailySent: number } | null>(null);
   const [checkoutPlan, setCheckoutPlan] = useState<string | null>(null);
@@ -174,8 +175,8 @@ export default function DashboardPage() {
           </div>
         )}
 
-        {/* Nudge Warning (Quota >= 80%) */}
-        {user && ((user.broadcast_used / user.broadcast_limit) >= 0.8) && (
+        {/* Nudge Warning (Quota >= 80%) — hanya utk paket berlimit (bukan Unlimited) */}
+        {user && user.broadcast_limit > 0 && user.broadcast_limit < 100000 && ((user.broadcast_used / user.broadcast_limit) >= 0.8) && (
           <div className="mb-8 bg-amber-50 border border-amber-200 text-amber-800 px-4 py-3 rounded-xl flex items-center gap-3 shadow-sm">
             <AlertCircle className="w-5 h-5 flex-shrink-0 text-amber-600" />
             <p className="font-medium">⚠️ Kuota broadcast Anda hampir habis! Segera perpanjang atau upgrade paket agar promosi tidak terhenti.</p>
@@ -201,18 +202,22 @@ export default function DashboardPage() {
 
             <div className="bg-neutral/5 rounded-xl p-5 border border-neutral/10">
               <p className="text-sm text-neutral-500 mb-1 font-medium">Pemakaian Kuota Broadcast</p>
-              <div className="flex items-end gap-2">
-                <p className="text-2xl font-bold">
-                  {user?.broadcast_used || 0}
-                </p>
-                <p className="text-sm text-neutral-500 mb-1">/ {user?.broadcast_limit || 100}</p>
-              </div>
-              <div className="w-full bg-neutral-200 rounded-full h-1.5 mt-3 overflow-hidden">
-                <div 
-                  className="bg-[#F59E0B] h-1.5 rounded-full transition-all duration-1000 ease-out" 
-                  style={{ width: `${Math.min(100, ((user?.broadcast_used || 0) / (user?.broadcast_limit || 1)) * 100)}%` }}
-                ></div>
-              </div>
+              {user && user.broadcast_limit > 0 && user.broadcast_limit < 100000 ? (
+                <>
+                  <div className="flex items-end gap-2">
+                    <p className="text-2xl font-bold">{user?.broadcast_used || 0}</p>
+                    <p className="text-sm text-neutral-500 mb-1">/ {user?.broadcast_limit}</p>
+                  </div>
+                  <div className="w-full bg-neutral-200 rounded-full h-1.5 mt-3 overflow-hidden">
+                    <div
+                      className="bg-[#F59E0B] h-1.5 rounded-full transition-all duration-1000 ease-out"
+                      style={{ width: `${Math.min(100, ((user?.broadcast_used || 0) / (user?.broadcast_limit || 1)) * 100)}%` }}
+                    ></div>
+                  </div>
+                </>
+              ) : (
+                <p className="text-2xl font-bold text-primary">Tak terbatas</p>
+              )}
             </div>
 
             <div className="bg-neutral/5 rounded-xl p-5 border border-neutral/10">
@@ -254,82 +259,68 @@ export default function DashboardPage() {
 
         {/* Pricing Section */}
         <div className="text-center mb-10">
-          <h2 className="text-3xl font-bold mb-3">Tingkatkan Performa Anda</h2>
-          <p className="text-neutral-600 mb-8">Pilih paket yang sesuai dengan kebutuhan bisnis Anda.</p>
-          
-          <div className="inline-flex items-center gap-3 bg-white p-1.5 rounded-full border border-neutral/20 shadow-sm mx-auto">
-            <button 
-              onClick={() => setIsYearly(false)}
-              className={`px-6 py-2 rounded-full text-sm font-bold transition-all ${!isYearly ? 'bg-primary text-white shadow' : 'text-neutral-500 hover:text-neutral-800'}`}
-            >
-              Bulanan
-            </button>
-            <button 
-              onClick={() => setIsYearly(true)}
-              className={`px-6 py-2 rounded-full text-sm font-bold transition-all flex items-center gap-2 ${isYearly ? 'bg-primary text-white shadow' : 'text-neutral-500 hover:text-neutral-800'}`}
-            >
-              Tahunan
-              <span className={`text-[10px] uppercase px-2 py-0.5 rounded-full ${isYearly ? 'bg-white/20' : 'bg-green-100 text-green-700'}`}>Hemat 2 Bulan</span>
-            </button>
-          </div>
+          <h2 className="text-3xl font-bold mb-3">Investasi Terbaik untuk Bisnis Anda</h2>
+          <p className="text-neutral-600">Mulai dari gratis, tingkatkan kapan saja sesuai dengan perkembangan bisnis Anda.</p>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-          {PLANS.map((plan) => (
-            <div 
-              key={plan.id} 
+        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto">
+          {PLANS.map((plan) => {
+            const isActive = user?.plan === plan.id;
+            return (
+            <div
+              key={plan.id}
               className={`bg-white text-neutral-900 rounded-2xl border ${plan.recommended ? 'border-primary ring-1 ring-primary shadow-lg shadow-primary/10' : 'border-neutral/20 shadow-sm'} p-8 relative flex flex-col`}
             >
               {plan.recommended && (
                 <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-[#F59E0B] text-[#3A2600] px-4 py-1 rounded-full text-xs font-bold uppercase tracking-wide">
-                  Paling Laris
+                  Paling Populer
                 </div>
               )}
-              
+
               <h3 className="text-xl font-bold capitalize mb-2">{plan.name}</h3>
               <p className="text-neutral-500 text-sm h-10">{plan.desc}</p>
-              
+
               <div className="my-6">
-                <span className="text-3xl font-extrabold">Rp {isYearly ? plan.priceYearly.toLocaleString("id-ID") : plan.price.toLocaleString("id-ID")}</span>
-                <span className="text-neutral-500"> / {isYearly ? 'tahun' : 'bulan'}</span>
+                <span className="text-3xl font-extrabold">{plan.priceText}</span>
+                <span className="text-neutral-500"> / {plan.period}</span>
               </div>
-              
+
               <ul className="space-y-4 mb-8 flex-1">
                 <li className="flex items-start gap-3">
                   <CheckCircle2 className="w-5 h-5 text-primary shrink-0" />
-                  <span className="text-sm font-medium">Limit {plan.limit.toLocaleString("id-ID")} Broadcast</span>
+                  <span className="text-sm font-medium">{plan.limitText}</span>
                 </li>
                 <li className="flex items-start gap-3">
                   <CheckCircle2 className="w-5 h-5 text-primary shrink-0" />
-                  <span className="text-sm font-medium">Maksimal {plan.max_devices} Nomor WA Terhubung</span>
+                  <span className="text-sm font-medium">Maksimal {plan.max_devices} Nomor WA</span>
                 </li>
                 <li className="flex items-start gap-3">
                   <CheckCircle2 className="w-5 h-5 text-primary shrink-0" />
-                  <span className="text-sm font-medium">Jeda dinamis & Personalisasi</span>
+                  <span className="text-sm font-medium">Jeda Dinamis & Personalisasi</span>
                 </li>
               </ul>
-              
+
               <button
-                onClick={() => handleBuy(isYearly ? `${plan.id}_yearly` : plan.id)}
+                onClick={() => { if (!plan.free) handleBuy(plan.id); }}
+                disabled={plan.free || isActive}
                 className={`w-full py-3 px-4 rounded-xl font-bold transition-all flex justify-center items-center gap-2 ${
-                  plan.recommended 
-                    ? 'bg-[#F59E0B] text-[#3A2600] hover:bg-[#D97706] shadow-md' 
+                  plan.recommended
+                    ? 'bg-[#F59E0B] text-[#3A2600] hover:bg-[#D97706] shadow-md'
                     : 'bg-neutral-100 text-neutral-800 hover:bg-neutral-200'
-                } disabled:opacity-70 disabled:cursor-not-allowed`}
+                } disabled:opacity-60 disabled:cursor-not-allowed`}
               >
-                {user?.plan === plan.id || user?.plan === `${plan.id}_yearly` ? "Perpanjang Paket" : "Pilih Paket"}
+                {isActive ? "Paket Aktif" : plan.free ? "Paket Gratis" : "Pilih Paket"}
               </button>
             </div>
-          ))}
+            );
+          })}
         </div>
       </main>
 
       {/* Branded Checkout Modal */}
       {checkoutPlan && (() => {
-        const isPlanYearly = checkoutPlan.endsWith("_yearly");
-        const basePlanId = checkoutPlan.replace("_yearly", "");
-        const plan = PLANS.find(p => p.id === basePlanId);
-        
+        const plan = PLANS.find(p => p.id === checkoutPlan);
+
         if (!plan) return null;
         
         return (
@@ -356,17 +347,17 @@ export default function DashboardPage() {
                   <div className="flex justify-between items-start mb-2">
                     <div>
                       <p className="text-xs text-neutral-500 font-medium uppercase tracking-wider mb-1">Paket Terpilih</p>
-                      <h4 className="text-xl font-bold text-neutral-900 capitalize">{plan.name} <span className="text-sm font-normal text-neutral-500">({isPlanYearly ? 'Tahunan' : 'Bulanan'})</span></h4>
+                      <h4 className="text-xl font-bold text-neutral-900 capitalize">{plan.name} <span className="text-sm font-normal text-neutral-500">({plan.period})</span></h4>
                     </div>
                     <div className="text-right">
                       <p className="text-2xl font-extrabold text-[#F59E0B]">
-                        Rp {isPlanYearly ? plan.priceYearly.toLocaleString("id-ID") : plan.price.toLocaleString("id-ID")}
+                        {plan.priceText}
                       </p>
                     </div>
                   </div>
                   <hr className="border-neutral/10 my-3" />
                   <ul className="space-y-2 text-sm text-neutral-600">
-                    <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-[#4F46E5]" /> Limit {plan.limit.toLocaleString("id-ID")} Broadcast</li>
+                    <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-[#4F46E5]" /> {plan.limitText}</li>
                     <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-[#4F46E5]" /> Maks. {plan.max_devices} Nomor Terhubung</li>
                   </ul>
                 </div>
